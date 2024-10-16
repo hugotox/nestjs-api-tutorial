@@ -3,8 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { BookmarkModule } from './bookmark/bookmark.module';
-import { User } from 'src/user/user.entity';
-import { Bookmark } from 'src/bookmark/bookmark.entity';
 
 @Module({
   imports: [
@@ -16,7 +14,7 @@ import { Bookmark } from 'src/bookmark/bookmark.entity';
       password: 'postgres',
       database: 'postgres',
       synchronize: true,
-      entities: [User, Bookmark],
+      autoLoadEntities: true,
     }),
     AuthModule,
     UserModule,

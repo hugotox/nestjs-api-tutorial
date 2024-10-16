@@ -25,4 +25,7 @@ export class Bookmark {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Column()
+  user: number;
 }
