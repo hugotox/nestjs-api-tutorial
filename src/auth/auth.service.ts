@@ -1,4 +1,6 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { hash, verify } from 'argon2';
 import { SignupDto } from 'src/auth/dto/auth.signup';
 import { DataSource, ObjectLiteral, Repository } from 'typeorm';
@@ -7,7 +9,11 @@ import { DataSource, ObjectLiteral, Repository } from 'typeorm';
 export class AuthService {
   userRepo: Repository<ObjectLiteral>;
 
-  constructor(private dataSource: DataSource) {
+  constructor(
+    private dataSource: DataSource,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {
     this.userRepo = this.dataSource.getRepository('User');
   }
 
@@ -22,8 +28,7 @@ export class AuthService {
         email: dto.email,
         password: hashedPwd,
       });
-      delete result.password;
-      return result;
+      return this.signToken(result.id, result.email);
     } catch (error) {
       if (error.code === '23505') {
         throw new ForbiddenException('User already exists');
@@ -41,7 +46,15 @@ export class AuthService {
     if (!pwMatches) {
       throw new ForbiddenException('Invalid password');
     }
-    delete user.password;
-    return user;
+    return this.signToken(user.id, user.email);
+  }
+
+  signToken(userId: number, email: string) {
+    return {
+      access_token: this.jwt.sign(
+        { sub: userId, email },
+        { expiresIn: '5000h', secret: this.config.get('JWT_SECRET') },
+      ),
+    };
   }
 }
